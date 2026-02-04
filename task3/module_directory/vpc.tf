@@ -1,16 +1,18 @@
+
+resource "aws_vpc" "example" {
+  cidr_block = var.vpc_cidr
+}
+
+
 # 1. הוספת המקור שמושך את רשימת ה-Zones הזמינים ב-Region שלך
 data "aws_availability_zones" "available" {
   state = "available"
 }
 
-resource "aws_vpc" "example" {
-  cidr_block = var.vpc_range
-}
-
 resource "aws_subnet" "Public_Subnet" {
   count                   = var.subnet_count
   vpc_id                  = aws_vpc.example.id
-  cidr_block              = cidrsubnet(var.vpc_range, 8, count.index)
+  cidr_block              = cidrsubnet(var.vpc_cidr, 8, count.index)
   map_public_ip_on_launch = var.if_public_ip
 
   # 2. התיקון הקריטי: כל סאבנט יקבל Zone אחר (למשל us-east-1a ואז us-east-1b)
@@ -37,23 +39,4 @@ resource "aws_route_table_association" "public_assoc" {
   count          = var.subnet_count
   subnet_id      = aws_subnet.Public_Subnet[count.index].id
   route_table_id = aws_route_table.rt_public.id
-}
-
-resource "aws_security_group" "sg" {
-  name   = "dolev-sg"
-  vpc_id = aws_vpc.example.id
-
-  ingress {
-    from_port   = 80
-    to_port     = 80
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
 }

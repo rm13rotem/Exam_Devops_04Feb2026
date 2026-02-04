@@ -47,4 +47,3 @@ resource "aws_route_table_association" "con-Private-rt" {
   subnet_id      = aws_subnet.Private-Subnet.id 
   route_table_id = aws_route_table.rt_Private.id
 }
-
